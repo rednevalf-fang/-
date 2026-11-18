@@ -3,24 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>獨角獸創作樂園</title>
+    <title>夢幻魔法卡片 - 獨角獸創作樂園</title>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; background: linear-gradient(135deg, #f3e7e9 0%, #e3eeff 100%); margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #ff6b81; margin-bottom: 25px; }
-        .section { margin-bottom: 20px; }
-        label { font-weight: bold; display: block; margin-bottom: 8px; color: #555; }
-        select { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #ddd; font-size: 16px; background: #fafafa; }
-        button { width: 100%; background: #ff6b81; color: white; border: none; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 12px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        button:hover { background: #ff4757; }
-        #result { margin-top: 25px; text-align: center; }
-        #result img { max-width: 100%; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); display: none; margin-top: 15px; }
-        .loading { display: none; color: #ff6b81; font-weight: bold; margin-top: 15px; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1a102f 0%, #2b1b4e 50%, #4a2858 100%);
+            margin: 0;
+            padding: 20px;
+            color: #f0e6ff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: rgba(30, 20, 50, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255, 182, 255, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #ff9ecd;
+            margin-bottom: 20px;
+            font-size: 26px;
+            text-shadow: 0 0 10px rgba(255, 158, 205, 0.5);
+        }
+        .section {
+            margin-bottom: 18px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+            color: #d8b4fe;
+            font-size: 15px;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 2px solid #6b46c1;
+            font-size: 15px;
+            background: #2d1b4e;
+            color: #fff;
+            outline: none;
+            transition: 0.2s;
+        }
+        select:focus {
+            border-color: #ff9ecd;
+            box-shadow: 0 0 8px rgba(255, 158, 205, 0.4);
+        }
+        button {
+            width: 100%;
+            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 15px;
+            box-shadow: 0 5px 15px rgba(255, 117, 140, 0.4);
+        }
+        button:hover {
+            background: linear-gradient(135deg, #ff5270 0%, #ff629a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(255, 117, 140, 0.6);
+        }
+        #result {
+            margin-top: 25px;
+            text-align: center;
+            background: rgba(15, 10, 30, 0.6);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px dashed rgba(255, 182, 255, 0.3);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .unicorn-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            animation: float 2s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        #result img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            display: none;
+        }
+        .loading {
+            display: none;
+            color: #ff9ecd;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .placeholder-text {
+            color: #b794f4;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .error-box {
+            background: rgba(255, 80, 80, 0.2);
+            border: 1px solid #ff5050;
+            color: #ff9e9e;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🦄 獨角獸創作樂園 🌟</h1>
+        <h1>✨ 夢幻魔法卡片：獨角獸創作樂園 🦄</h1>
         
         <div class="section">
             <label for="feather">1. 選擇獨角獸的羽毛樣式：</label>
@@ -64,12 +175,16 @@
             </select>
         </div>
 
-        <button onclick="generateUnicorn()">✨ 開始生成專屬獨角獸！</button>
+        <button onclick="generateUnicorn()">✨ 開始召喚魔法獨角獸！</button>
 
         <div id="result">
-            <div class="loading" id="loadingText">🎨 獨角獸正在施展魔法誕生中，請稍候 3-5 秒...</div>
+            <div id="placeholderContent">
+                <div class="unicorn-icon">🦄</div>
+                <div class="placeholder-text">魔法陣準備就緒<br>請在上方選擇你喜歡的羽毛、毛色與背景，然後點擊「開始召喚」來創造專屬獨角獸！</div>
+            </div>
+            <div class="loading" id="loadingText">🎨 獨角獸正在魔法陣中誕生中，請稍候 3-5 秒...</div>
             <img id="unicornImage" alt="生成的獨角獸圖片" onload="hideLoading()" onerror="showError()">
-            <div id="errorText" style="color: red; display: none; margin-top: 10px;">圖片生成發生了一點小狀況，請再點一次按鈕試試看！</div>
+            <div class="error-box" id="errorText">⚠️ 魔法施展遇到了一點小阻礙，請再點一次按鈕試試看！</div>
         </div>
     </div>
 
@@ -79,10 +194,12 @@
             const color = document.getElementById('color').value;
             const background = document.getElementById('background').value;
 
+            const placeholder = document.getElementById('placeholderContent');
             const img = document.getElementById('unicornImage');
             const loading = document.getElementById('loadingText');
             const error = document.getElementById('errorText');
 
+            placeholder.style.display = 'none';
             img.style.display = 'none';
             error.style.display = 'none';
             loading.style.display = 'block';
@@ -101,6 +218,7 @@
         function showError() {
             document.getElementById('loadingText').style.display = 'none';
             document.getElementById('errorText').style.display = 'block';
+            document.getElementById('placeholderContent').style.display = 'block';
         }
     </script>
 </body>
