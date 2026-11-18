@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>獨角獸創作樂園 - 夢幻魔法生成器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #2e1065 0%, #4c1d95 50%, #831843 100%);
+            color: #f3e8ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(244, 114, 182, 0.8);
+            box-shadow: 0 0 20px rgba(244, 114, 182, 0.4);
+        }
+        .glass-card.selected {
+            background: rgba(236, 72, 153, 0.25);
+            border-color: #ec4899;
+            box-shadow: 0 0 25px rgba(236, 72, 153, 0.6);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(1deg); }
+        }
+        .floating {
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(236, 72, 153, 0.5); }
+            50% { box-shadow: 0 0 35px rgba(236, 72, 153, 0.9), 0 0 50px rgba(168, 85, 247, 0.6); }
+        }
+        .magical-glow {
+            animation: pulse-glow 3s infinite;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(46, 16, 101, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(236, 72, 153, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(236, 72, 153, 0.8);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-full relative">
+
+    <!-- Background Starry Particle Canvas -->
+    <canvas id="starCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+    <!-- Main Container -->
+    <div class="relative z-10 flex flex-col min-h-screen max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <div class="inline-flex items-center justify-center gap-3 bg-white/10 px-6 py-2 rounded-full border border-pink-300/30 mb-3 shadow-lg">
+                <i class="fa-solid fa-wand-magic-sparkles text-pink-400 animate-spin" style="animation-duration: 6s;"></i>
+                <span class="text-sm font-semibold tracking-wider text-pink-200">兒童專屬魔法創作天地</span>
+                <i class="fa-solid fa-horse text-purple-300"></i>
+            </div>
+            <h1 class="text-4xl sm:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 drop-shadow-md">
+                🦄 獨角獸創作樂園
+            </h1>
+            <p class="text-pink-200/80 mt-2 text-sm sm:text-base max-w-xl mx-auto">
+                親愛的小寶貝，選擇你心目中最夢幻的羽毛、毛色與魔法背景，召喚屬於你的獨角獸夥伴吧！✨
+            </p>
+        </header>
+
+        <!-- Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start flex-grow">
+
+            <!-- Left Panel: Customization Options (7 cols) -->
+            <div class="lg:col-span-7 glass-panel rounded-3xl p-6 sm:p-8 space-y-8">
+
+                <!-- Name Input -->
+                <div>
+                    <label class="block text-pink-200 font-semibold mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-signature text-pink-400"></i> 幫獨角獸取個名字：
+                    </label>
+                    <input type="text" id="unicornName" value="昕穎的獨角獸" 
+                        class="w-full bg-white/10 border border-pink-300/30 rounded-2xl px-5 py-3 text-white placeholder-pink-300/50 focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-400/50 transition-all font-medium text-lg shadow-inner">
+                </div>
+
+                <!-- 1. Feathers Style -->
+                <div>
+                    <h3 class="text-lg font-bold text-pink-200 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-feather text-pink-400"></i> 1. 選擇羽毛樣式 <span class="text-xs text-pink-300/70 font-normal">(8種精選)</span>
+                    </h3>
+                    <div id="featherGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- 2. Coat & Mane Color -->
+                <div>
+                    <h3 class="text-lg font-bold text-pink-200 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-palette text-purple-400"></i> 2. 選擇毛色與鬃毛 <span class="text-xs text-pink-300/70 font-normal">(6種精選)</span>
+                    </h3>
+                    <div id="colorGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- 3. Background Scene -->
+                <div>
+                    <h3 class="text-lg font-bold text-pink-200 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-mountain-sun text-indigo-400"></i> 3. 選擇魔法背景場景 <span class="text-xs text-pink-300/70 font-normal">(6種精選)</span>
+                    </h3>
+                    <div id="bgGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button onclick="summonUnicorn()" id="summonBtn"
+                    class="w-full py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-600 hover:from-pink-400 hover:via-purple-400 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-xl magical-glow flex items-center justify-center gap-3 text-lg transition-all transform active:scale-95 cursor-pointer">
+                    <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
+                    開始召喚我的夢幻獨角獸！✨
+                </button>
+
+            </div>
+
+            <!-- Right Panel: Preview & Magic Card Display (5 cols) -->
+            <div class="lg:col-span-5 sticky top-6 space-y-6">
+
+                <!-- Card Showcase Container -->
+                <div id="cardContainer" class="glass-panel rounded-3xl p-6 sm:p-8 flex flex-col items-center text-center relative overflow-hidden shadow-2xl">
+                    <div class="absolute -top-12 -right-12 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <!-- Card Header / Status -->
+                    <div class="w-full flex justify-between items-center mb-4 z-10">
+                        <span id="cardTitleBadge" class="bg-pink-500/30 border border-pink-400/40 px-3 py-1 rounded-full text-xs font-semibold text-pink-200">
+                            ✨ 夢幻魔法卡片
+                        </span>
+                        <span id="cardTimestamp" class="text-xs text-pink-300/60 font-mono">2026.06</span>
+                    </div>
+
+                    <!-- Image / Illustration Display Box -->
+                    <div id="imageDisplayBox" class="w-full aspect-square rounded-2xl bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950 border-2 border-pink-400/30 flex flex-col items-center justify-center relative overflow-hidden group shadow-inner mb-6">
+                        
+                        <!-- Initial state / Placeholder -->
+                        <div id="placeholderView" class="p-8 text-center flex flex-col items-center justify-center space-y-4">
+                            <div class="w-24 h-24 rounded-full bg-white/5 border border-pink-400/20 flex items-center justify-center text-pink-300 text-4xl floating">
+                                🦄
+                            </div>
+                            <h4 class="text-lg font-bold text-pink-200">魔法陣準備就緒</h4>
+                            <p class="text-xs text-pink-300/70 max-w-xs">
+                                請在左側選擇你喜歡的羽毛、毛色與背景，然後點擊「開始召喚」來創造專屬獨角獸！
+                            </p>
+                        </div>
+
+                        <!-- Loading View -->
+                        <div id="loadingView" class="hidden absolute inset-0 bg-indigo-950/90 backdrop-blur-md flex flex-col items-center justify-center space-y-4 z-20">
+                            <div class="relative">
+                                <div class="w-16 h-16 border-4 border-pink-400 border-t-transparent rounded-full animate-spin"></div>
+                                <div class="absolute inset-0 flex items-center justify-center text-xl">✨</div>
+                            </div>
+                            <div class="text-pink-200 font-bold text-lg animate-pulse">正在施展魔法中...</div>
+                            <p class="text-xs text-pink-300/70" id="loadingTip">正在召喚星空精靈與發光蘑菇...</p>
+                        </div>
+
+                        <!-- Result AI Image Canvas / Img -->
+                        <img id="resultImage" class="hidden w-full h-full object-cover rounded-xl transition-all duration-500 group-hover:scale-105" alt="Generated Unicorn">
+                    </div>
+
+                    <!-- Card Info Summary -->
+                    <div id="cardInfo" class="w-full text-left bg-white/5 rounded-2xl p-4 border border-white/10 mb-6 hidden space-y-2 text-sm">
+                        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                            <span class="text-pink-300/70">獨角獸名字：</span>
+                            <span id="summaryName" class="font-bold text-pink-200">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                            <span class="text-pink-300/70">羽毛樣式：</span>
+                            <span id="summaryFeather" class="text-white font-medium">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                            <span class="text-pink-300/70">毛色與鬃毛：</span>
+                            <span id="summaryColor" class="text-white font-medium">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-pink-300/70">背景場景：</span>
+                            <span id="summaryBg" class="text-white font-medium">--</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons for Result -->
+                    <div id="resultActions" class="w-full grid grid-cols-2 gap-3 hidden">
+                        <button onclick="downloadCard()" class="py-3 bg-pink-600 hover:bg-pink-500 text-white rounded-xl font-semibold shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer text-sm">
+                            <i class="fa-solid fa-download"></i> 儲存卡片
+                        </button>
+                        <button onclick="copyPromptText()" class="py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-semibold shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer text-sm">
+                            <i class="fa-solid fa-copy"></i> 複製繪圖 Prompt
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Custom Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-32 opacity-0 transition-all duration-300 z-50 bg-pink-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-pink-300/40">
+        <i class="fa-solid fa-circle-check text-xl"></i>
+        <span id="toastMessage" class="font-medium">已完成操作！</span>
+    </div>
+
+    <script>
+        // Data Options
+        const feathers = [
+            { id: 'silver', name: '銀白透光羽毛', desc: '散發純淨月光微光', icon: '✨' },
+            { id: 'rainbow', name: '彩虹漸層羽毛', desc: '絢麗七彩浪漫光暈', icon: '🌈' },
+            { id: 'starry', name: '星空閃爍羽毛', desc: '內含流星與銀河微粒', icon: '🌌' },
+            { id: 'crystal', name: '水晶寶石羽毛', desc: '如鑽石般折射璀璨光芒', icon: '💎' },
+            { id: 'golden', name: '黃金曙光羽毛', desc: '溫暖耀眼的晨曦金芒', icon: '☀️' },
+            { id: 'butterfly', name: '夢幻粉蝶羽毛', desc: '柔美粉嫩與蝴蝶飛舞', icon: '🦋' },
+            { id: 'snowflake', name: '冰晶雪花羽毛', desc: '清涼優雅的極地雪花', icon: '❄️' },
+            { id: 'aurora', name: '極光幻彩羽毛', desc: '神祕流動的綠紫極光', icon: '🌠' }
+        ];
+
+        const colors = [
+            { id: 'pearl', name: '純白珍珠', desc: '高雅純潔', hex: '#f8fafc', textColor: 'text-slate-800' },
+            { id: 'lavender', name: '薰衣草紫', desc: '夢幻優雅', hex: '#d8b4fe', textColor: 'text-purple-900' },
+            { id: 'blue', name: '冰晶藍', desc: '清澈靈動', hex: '#7dd3fc', textColor: 'text-sky-900' },
+            { id: 'pink', name: '粉紅棉花糖', desc: '甜美可愛', hex: '#f472b6', textColor: 'text-pink-900' },
+            { id: 'mint', name: '薄荷綠', desc: '清新自然', hex: '#6ee7b7', textColor: 'text-emerald-900' },
+            { id: 'midnight', name: '夜空深藍', desc: '神祕深邃', hex: '#312e81', textColor: 'text-indigo-200' }
+        ];
+
+        const backgrounds = [
+            { id: 'forest', name: '月光魔法森林與發光蘑菇', desc: '參考圖風格：參天古樹、發光彩色蘑菇、皎潔明月與螢火蟲', icon: '🍄' },
+            { id: 'waterfall', name: '星空銀河瀑布', desc: '傾瀉而下的銀河星光與水晶河畔', icon: '🌊' },
+            { id: 'castle', name: '水晶城堡花園', desc: '夢幻粉色城堡與發光玫瑰花海', icon: '🏰' },
+            { id: 'cloud', name: '彩虹雲端仙境', desc: '柔軟棉花糖雲朵與彩虹橋樑', icon: '☁️' },
+            { id: 'cherry', name: '夢幻櫻花幽谷', desc: '浪漫飄落的粉紅櫻花瓣與春意', icon: '🌸' },
+            { id: 'lake', name: '極光星夜湖畔', desc: '倒映絢麗綠紫極光的寧靜湖水', icon: '🌙' }
+        ];
+
+        // State variables
+        let selectedFeather = feathers[0];
+        let selectedColor = colors[0];
+        let selectedBg = backgrounds[0];
+        let currentPrompt = '';
+
+        // Initialize UI
+        function initApp() {
+            renderFeathers();
+            renderColors();
+            renderBackgrounds();
+            initStarCanvas();
+        }
+
+        function renderFeathers() {
+            const grid = document.getElementById('featherGrid');
+            grid.innerHTML = feathers.map((f, i) => `
+                <div onclick="selectFeather('${f.id}')" id="feather-${f.id}" 
+                    class="glass-card rounded-2xl p-3 cursor-pointer flex flex-col items-center text-center transition-all ${i === 0 ? 'selected' : ''}">
+                    <span class="text-2xl mb-1">${f.icon}</span>
+                    <span class="text-xs font-bold text-white">${f.name}</span>
+                    <span class="text-[10px] text-pink-200/70 mt-0.5 line-clamp-1">${f.desc}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderColors() {
+            const grid = document.getElementById('colorGrid');
+            grid.innerHTML = colors.map((c, i) => `
+                <div onclick="selectColor('${c.id}')" id="color-${c.id}" 
+                    class="glass-card rounded-2xl p-3 cursor-pointer flex items-center gap-3 transition-all ${i === 0 ? 'selected' : ''}">
+                    <div class="w-8 h-8 rounded-full shadow-md border-2 border-white/50 flex-shrink-0" style="background-color: ${c.hex};"></div>
+                    <div class="text-left overflow-hidden">
+                        <div class="text-xs font-bold text-white truncate">${c.name}</div>
+                        <div class="text-[10px] text-pink-200/70 truncate">${c.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderBackgrounds() {
+            const grid = document.getElementById('bgGrid');
+            grid.innerHTML = backgrounds.map((b, i) => `
+                <div onclick="selectBackground('${b.id}')" id="bg-${b.id}" 
+                    class="glass-card rounded-2xl p-4 cursor-pointer flex items-start gap-3 transition-all ${i === 0 ? 'selected' : ''}">
+                    <span class="text-2xl flex-shrink-0">${b.icon}</span>
+                    <div class="text-left overflow-hidden">
+                        <div class="text-xs font-bold text-white mb-0.5">${b.name}</div>
+                        <div class="text-[11px] text-pink-200/80 leading-tight">${b.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectFeather(id) {
+            feathers.forEach(f => {
+                document.getElementById(`feather-${f.id}`).classList.remove('selected');
+            });
+            document.getElementById(`feather-${id}`).classList.add('selected');
+            selectedFeather = feathers.find(f => f.id === id);
+        }
+
+        function selectColor(id) {
+            colors.forEach(c => {
+                document.getElementById(`color-${c.id}`).classList.remove('selected');
+            });
+            document.getElementById(`color-${id}`).classList.add('selected');
+            selectedColor = colors.find(c => c.id === id);
+        }
+
+        function selectBackground(id) {
+            backgrounds.forEach(b => {
+                document.getElementById(`bg-${b.id}`).classList.remove('selected');
+            });
+            document.getElementById(`bg-${id}`).classList.add('selected');
+            selectedBg = backgrounds.find(b => b.id === id);
+        }
+
+        // Starry Canvas Background Effect
+        function initStarCanvas() {
+            const canvas = document.getElementById('starCanvas');
+            const ctx = canvas.getContext('2d');
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            });
+
+            const stars = Array.from({ length: 70 }, () => ({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                radius: Math.random() * 2 + 0.5,
+                alpha: Math.random(),
+                speed: Math.random() * 0.02 + 0.005
+            }));
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                stars.forEach(star => {
+                    star.alpha += star.speed;
+                    if (star.alpha > 1 || star.alpha < 0) star.speed = -star.speed;
+                    ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(star.alpha)})`;
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // Toast notification
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.classList.remove('translate-y-32', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-32', 'opacity-0');
+            }, 3000);
+        }
+
+        // Summoning Unicorn with Gemini 3.1 Flash Image API
+        async function summonUnicorn() {
+            const unicornName = document.getElementById('unicornName').value.trim() || '夢幻獨角獸';
+            
+            // Show loading view
+            document.getElementById('placeholderView').classList.add('hidden');
+            document.getElementById('resultImage').classList.add('hidden');
+            document.getElementById('loadingView').classList.remove('hidden');
+            document.getElementById('cardInfo').classList.add('hidden');
+            document.getElementById('resultActions').classList.add('hidden');
+
+            const tips = [
+                '正在收集月光魔法與發光蘑菇粉末...',
+                '正在為獨角獸梳理羽毛與璀璨鬃毛...',
+                '正在施展星空銀河與極光色彩...',
+                '即將完成夢幻魔法卡片！✨'
+            ];
+            let tipIdx = 0;
+            const tipInterval = setInterval(() => {
+                tipIdx = (tipIdx + 1) % tips.length;
+                document.getElementById('loadingTip').innerText = tips[tipIdx];
+            }, 1200);
+
+            // Build detailed prompt based on selections & reference style
+            currentPrompt = `A breathtaking, exquisite children's storybook illustration of a majestic magical unicorn pegasus with large glowing ${selectedFeather.name} (${selectedFeather.desc}) wings. The unicorn has a ${selectedColor.name} (${selectedColor.desc}) coat and flowing mane, and a sparkling spiral horn emitting soft golden light. The background is set in a magical fantasy scene: ${selectedBg.name} (${selectedBg.desc}). Detailed magical atmosphere, glowing fireflies, starlight, pastel neon glow, magical fairy tale art style, high quality, vibrant colors, masterpiece.`;
+
+            const payload = {
+                contents: [{
+                    role: 'user',
+                    parts: [{ text: currentPrompt }]
+                }],
+                generationConfig: {
+                    responseModalities: ['IMAGE'],
+                    imageConfig: { aspectRatio: "1:1" }
+                }
+            };
+
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
+
+            try {
+                let response = null;
+                let retries = 3;
+                let delay = 1000;
+
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (response.ok) break;
+                    } catch (err) {
+                        if (i === retries - 1) throw err;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+
+                clearInterval(tipInterval);
+
+                if (!response || !response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+
+                if (!part) {
+                    throw new Error('No image data found in response');
+                }
+
+                const imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                
+                // Display image
+                const imgEl = document.getElementById('resultImage');
+                imgEl.src = imageUrl;
+                imgEl.onload = () => {
+                    document.getElementById('loadingView').classList.add('hidden');
+                    imgEl.classList.remove('hidden');
+                    
+                    // Update Summary Info
+                    document.getElementById('summaryName').innerText = unicornName;
+                    document.getElementById('summaryFeather').innerText = selectedFeather.name;
+                    document.getElementById('summaryColor').innerText = selectedColor.name;
+                    document.getElementById('summaryBg').innerText = selectedBg.name;
+                    
+                    document.getElementById('cardInfo').classList.remove('hidden');
+                    document.getElementById('resultActions').classList.remove('hidden');
+                    showToast(`✨ 成功召喚「${unicornName}」！`);
+                };
+
+            } catch (error) {
+                clearInterval(tipInterval);
+                document.getElementById('loadingView').classList.add('hidden');
+                document.getElementById('placeholderView').classList.remove('hidden');
+                console.error(error);
+                showToast('❌ 魔法施展遇到了一點小阻礙，請再試一次！');
+            }
+        }
+
+        function downloadCard() {
+            const imgEl = document.getElementById('resultImage');
+            if (!imgEl.src) return;
+            const link = document.createElement('a');
+            link.href = imgEl.src;
+            link.download = `${document.getElementById('unicornName').value || '獨角獸'}_魔法卡片.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('💾 卡片已成功儲存！');
+        }
+
+        function copyPromptText() {
+            if (!currentPrompt) return;
+            document.addEventListener('copy', function(e) {
+                e.clipboardData.setData('text/plain', currentPrompt);
+                e.preventDefault();
+            }, { once: true });
+            document.execCommand('copy');
+            showToast('📋 已複製 AI 繪圖 Prompt！');
+        }
+
+        // Run on load
+        window.onload = initApp;
+    </script>
+</body>
+</html>
